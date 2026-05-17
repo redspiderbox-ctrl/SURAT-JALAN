@@ -1,899 +1,788 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-<meta charset="UTF-8">
-<title>Surat Jalan</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kalkulasi Pembelian DOGE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --bg2: #111621;
+      --card: #151b28;
+      --card2: #1a2233;
+      --border: #253045;
+      --fg: #e6edf5;
+      --muted: #6b7d99;
+      --accent: #e94560;
+      --accent2: #ff6b81;
+      --green: #00d68f;
+      --green2: #00f5a0;
+      --gold: #f0b90b;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-<!-- Library untuk Export Excel -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- Library untuk Export PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    /* ====== ANIMATED BACKGROUND ====== */
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(233,69,96,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(0,214,143,0.05) 0%, transparent 50%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+    }
+    .bg-grid::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 0H0v60' fill='none' stroke='%23253045' stroke-width='0.5'/%3E%3C/svg%3E");
+      opacity: 0.3;
+    }
 
-<style>
+    /* ====== PARTICLES ====== */
+    .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .particle {
+      position: absolute; border-radius: 50%;
+      animation: floatUp linear infinite; opacity: 0;
+    }
+    @keyframes floatUp {
+      0% { opacity: 0; transform: translateY(0) scale(0.5); }
+      15% { opacity: 1; }
+      85% { opacity: 0.6; }
+      100% { opacity: 0; transform: translateY(-100vh) scale(1.2); }
+    }
 
-:root {
-    --primary-color: #2563eb;
-    --text-color: #1f2937;
-    --bg-light: #f8fafc;
-    --border-color: #e5e7eb;
-    --white: #ffffff;
-}
+    .container { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; padding: 20px 16px 80px; }
 
-body{
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin:20px;
-    background-color: #f1f5f9;
-    font-size: 13px;
-    color: var(--text-color);
-}
+    /* ====== HEADER ====== */
+    .header {
+      display: flex; align-items: center; gap: 16px;
+      margin-bottom: 28px; padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .coin-icon {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), #d4a017);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700; font-size: 20px; color: #111;
+      box-shadow: 0 0 30px rgba(240,185,11,0.3), inset 0 -2px 6px rgba(0,0,0,0.2);
+      animation: coinGlow 3s ease-in-out infinite;
+      position: relative; flex-shrink: 0;
+    }
+    .coin-icon::after {
+      content: ''; position: absolute; inset: -4px; border-radius: 50%;
+      border: 2px solid rgba(240,185,11,0.3);
+      animation: coinPulse 3s ease-in-out infinite;
+    }
+    @keyframes coinGlow {
+      0%,100% { box-shadow: 0 0 30px rgba(240,185,11,0.3); }
+      50% { box-shadow: 0 0 50px rgba(240,185,11,0.5); }
+    }
+    @keyframes coinPulse {
+      0%,100% { transform: scale(1); opacity: 0.3; }
+      50% { transform: scale(1.15); opacity: 0.6; }
+    }
+    .header-text h1 {
+      font-size: 26px; font-weight: 700;
+      background: linear-gradient(90deg, var(--fg), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header-text p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .status-badge {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px; background: var(--card);
+      border: 1px solid var(--border); border-radius: 100px;
+      font-size: 12px; color: var(--muted); white-space: nowrap;
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent); transition: all 0.3s; flex-shrink: 0;
+    }
+    .status-dot.ok { background: var(--green); box-shadow: 0 0 8px rgba(0,214,143,0.5); }
 
-.container-utama {
-    max-width: 1100px; 
-    margin: 0 auto;
-    background-color: var(--white);
-    padding: 30px 40px;
-    border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    box-sizing: border-box;
-}
+    /* ====== CONFIG BAR ====== */
+    .config-bar {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; margin-bottom: 24px; display: none;
+    }
+    .config-bar.show { display: block; animation: slideDown 0.3s ease; }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+    .config-bar label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: block; }
+    .config-bar input {
+      width: 100%; padding: 10px 12px; background: var(--bg2);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--fg); font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    }
+    .config-bar input:focus { outline: none; border-color: var(--accent); }
+    .cfg-btns { display: flex; gap: 8px; margin-top: 12px; }
+    .cfg-btns button {
+      padding: 8px 20px; border-radius: 8px; border: none; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 13px;
+    }
+    .btn-cfg-save { background: var(--accent); color: #fff; }
+    .btn-cfg-cancel { background: var(--card2); color: var(--muted); }
 
-h2{
-    text-align:center;
-    margin-bottom: 20px;
-    text-transform: uppercase;
-    font-size: 18px;
-    margin-top: 0;
-    letter-spacing: 1px;
-    color: var(--text-color);
-    font-weight: 700;
-}
+    /* ====== INPUT SECTION ====== */
+    .input-section {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px; margin-bottom: 24px;
+    }
+    .input-section h2 {
+      font-size: 15px; font-weight: 600; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .input-section h2 i { color: var(--accent); }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 16px;
+    }
+    .form-group label {
+      display: block; font-size: 11px; color: var(--muted);
+      margin-bottom: 6px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .form-group input, .form-group select {
+      width: 100%; padding: 11px 14px; background: var(--bg2);
+      border: 1px solid var(--border); border-radius: 10px;
+      color: var(--fg); font-family: 'JetBrains Mono', monospace;
+      font-size: 14px; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline: none; border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(233,69,96,0.15);
+    }
+    .form-group select { cursor: pointer; }
+    .form-group select option { background: var(--bg2); color: var(--fg); }
+    .btn-add {
+      margin-top: 20px; width: 100%; padding: 14px;
+      background: linear-gradient(135deg, var(--accent), #c23152);
+      color: #fff; border: none; border-radius: 12px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-add:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(233,69,96,0.3); }
+    .btn-add:active { transform: translateY(0); }
+    .btn-add:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
-.kop-surat {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--primary-color);
-}
+    /* ====== CURRENT PRICE ====== */
+    .current-price-section {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px 24px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+    .current-price-section label {
+      font-size: 14px; font-weight: 500; white-space: nowrap;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .current-price-section label i { color: var(--green); }
+    .current-price-section input {
+      flex: 1; min-width: 160px; padding: 10px 14px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--fg);
+      font-family: 'JetBrains Mono', monospace; font-size: 14px;
+    }
+    .current-price-section input:focus { outline: none; border-color: var(--green); }
 
-.kop-logo {
-    width: 80px; 
-    height: auto;
-    margin-right: 20px;
-    object-fit: contain;
-}
+    /* ====== SUMMARY CARDS ====== */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px; margin-bottom: 24px;
+    }
+    .summary-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px; position: relative; overflow: hidden;
+    }
+    .summary-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    }
+    .sc-koin::before { background: linear-gradient(90deg, var(--gold), #d4a017); }
+    .sc-modal::before { background: linear-gradient(90deg, var(--accent), #c23152); }
+    .sc-avg::before { background: linear-gradient(90deg, var(--green), var(--green2)); }
+    .sc-pnl::before { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+    .card-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--muted); margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .card-value {
+      font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700;
+    }
+    .card-sub {
+      font-size: 12px; color: var(--muted); margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .t-g { color: var(--green); }
+    .t-r { color: var(--accent); }
+    .t-y { color: var(--gold); }
+    .t-f { color: var(--fg); }
 
-.kop-teks {
-    flex-grow: 1;
-}
+    /* ====== PNL DETAIL ====== */
+    .pnl-bar {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px; margin-bottom: 24px;
+    }
+    .pnl-bar h3 {
+      font-size: 14px; font-weight: 600; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .pnl-bar h3 i { color: var(--green); }
+    .pnl-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid rgba(37,48,69,0.4); font-size: 14px;
+    }
+    .pnl-row:last-child { border-bottom: none; }
+    .pnl-label { color: var(--muted); }
+    .pnl-val { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+    .pnl-progress { margin-top: 16px; height: 8px; background: var(--bg2); border-radius: 100px; overflow: hidden; }
+    .pnl-fill { height: 100%; border-radius: 100px; transition: width 0.6s ease, background 0.3s; min-width: 2px; }
 
-.kop-teks h1 {
-    margin: 0;
-    font-size: 22px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 800;
-    color: var(--primary-color);
-}
+    /* ====== TABLE ====== */
+    .table-section {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden; margin-bottom: 24px;
+    }
+    .table-top {
+      padding: 20px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .table-top h2 {
+      font-size: 15px; font-weight: 600;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .table-top h2 i { color: var(--gold); }
+    .table-cnt {
+      font-size: 12px; color: var(--muted);
+      background: var(--bg2); padding: 4px 12px; border-radius: 100px;
+    }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 12px 14px; text-align: left;
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--muted);
+      background: var(--card2); border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid rgba(37,48,69,0.5); transition: background 0.15s; }
+    tbody tr:hover { background: rgba(233,69,96,0.04); }
+    tbody td {
+      padding: 12px 14px; font-size: 13px;
+      font-family: 'JetBrains Mono', monospace; white-space: nowrap;
+    }
+    .td-coin {
+      background: rgba(240,185,11,0.12); color: var(--gold);
+      padding: 3px 10px; border-radius: 6px; font-weight: 600; font-size: 11px;
+      display: inline-block;
+    }
+    .td-date { color: var(--muted); }
+    .td-total { color: var(--accent2); font-weight: 600; }
+    .td-jumlah { color: var(--green); font-weight: 600; }
+    .btn-del {
+      background: rgba(233,69,96,0.1); color: var(--accent);
+      border: 1px solid rgba(233,69,96,0.2);
+      padding: 6px 12px; border-radius: 8px;
+      cursor: pointer; font-size: 12px; transition: all 0.15s;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .btn-del:hover { background: var(--accent); color: #fff; }
+    .empty-state { text-align: center; padding: 50px 20px; color: var(--muted); }
+    .empty-state i { font-size: 44px; margin-bottom: 14px; opacity: 0.3; display: block; }
+    .empty-state p { font-size: 14px; }
 
-.kop-teks p {
-    margin: 3px 0 0 0;
-    font-size: 12px;
-    color: #64748b;
-    line-height: 1.5;
-}
+    /* ====== TOAST ====== */
+    .toast-box { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .toast {
+      padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500;
+      display: flex; align-items: center; gap: 10px;
+      animation: toastIn 0.3s ease; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+    .toast.success { background: #0a2e1f; border: 1px solid var(--green); color: var(--green); }
+    .toast.error { background: #2e0a14; border: 1px solid var(--accent); color: var(--accent2); }
+    .toast.info { background: #0a1a2e; border: 1px solid #3b82f6; color: #60a5fa; }
+    @keyframes toastIn { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
 
-/* PERUBAHAN: Layout Grid 4 Kolom untuk Info Utama */
-.info-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 Kolom sama lebar */
-    gap: 15px;
-    margin-bottom: 10px; 
-    background-color: var(--bg-light);
-    padding: 15px 20px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-}
+    /* ====== SETTINGS BTN ====== */
+    .settings-btn {
+      position: fixed; bottom: 24px; right: 24px; z-index: 100;
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--muted); font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+    }
+    .settings-btn:hover { color: var(--fg); border-color: var(--accent); box-shadow: 0 0 20px rgba(233,69,96,0.2); }
 
-.info-item {
-    display: flex;
-    flex-direction: column;
-}
+    /* ====== FOOTER ====== */
+    .footer {
+      text-align: center; padding: 24px 0; color: var(--muted);
+      font-size: 12px; border-top: 1px solid var(--border);
+    }
+    .footer a { color: var(--gold); text-decoration: none; }
 
-.label-text {
-    margin-bottom: 6px;
-    font-weight: 600;
-    font-size: 11px;
-    text-transform: uppercase;
-    color: #64748b;
-}
+    /* ====== RESPONSIVE ====== */
+    @media (max-width: 640px) {
+      .header { flex-wrap: wrap; gap: 12px; }
+      .status-badge { margin-left: 0; }
+      .header-text h1 { font-size: 20px; }
+      .card-value { font-size: 17px !important; }
+      .form-grid { grid-template-columns: 1fr; }
+      .current-price-section { flex-direction: column; align-items: flex-start; }
+      .current-price-section input { width: 100%; }
+    }
 
-.input-box {
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 8px;
-    font-size: 13px;
-    font-family: inherit;
-    width: 100%;
-    box-sizing: border-box;
-    background: var(--white);
-    outline: none;
-    transition: border-color 0.2s;
-}
-
-.input-box:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.kepada-section {
-    margin-bottom: 15px;
-    background-color: var(--bg-light);
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.kepada-section .label-text {
-    margin-bottom: 0;
-    white-space: nowrap;
-}
-
-.kepada-section .input-box {
-    border: none;
-    border-bottom: 1px solid var(--border-color);
-    border-radius: 0;
-    background: transparent;
-    font-weight: 600;
-}
-
-.form {
-    margin-top: 20px;
-    padding: 15px 20px;
-    background: var(--bg-light);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    display: flex;
-    flex-wrap: nowrap; 
-    gap: 15px;
-    align-items: center; 
-}
-
-.form input {
-    padding: 8px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 13px;
-    transition: all 0.2s;
-}
-
-.form input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-#nama { flex-grow: 1; min-width: 250px;}
-#qty, #p, #l, #t { width: 60px; text-align: center; }
-#colly { width: 70px; text-align: center; }
-#ket { flex-grow: 1; min-width: 150px; }
-
-table{
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 5px;
-    font-size: 12px; 
-    border: 1px solid #d1d5db;
-}
-
-th, td {
-    padding: 8px 5px;
-    text-align: center;
-    vertical-align: middle;
-    border: 1px solid #d1d5db;
-}
-
-.editable {
-    cursor: pointer;
-    min-width: 20px;
-    display: inline-block;
-}
-.editable:hover {
-    background-color: #e0f2fe;
-    color: #0284c7;
-}
-.editable:focus {
-    outline: 2px solid var(--primary-color);
-    background-color: #fff;
-}
-
-td.nama-cell, td.ket-cell {
-    text-align: left !important;
-    white-space: nowrap; 
-}
-
-tbody tr:nth-child(even) {
-    background-color: #f8fafc;
-}
-
-tbody tr:hover {
-    background-color: #f1f5f9;
-}
-
-thead th {
-    background-color: var(--text-color);
-    color: var(--white);
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 10px; 
-    letter-spacing: 0.5px;
-}
-
-tfoot td {
-    font-weight: 700;
-    background-color: #e2e8f0;
-    font-size: 12px;
-    border-top: 2px solid #cbd5e1;
-    color: var(--text-color);
-}
-
-.btn-aksi {
-    padding: 8px 16px;
-    margin: 5px;
-    cursor: pointer;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    transition: transform 0.1s, box-shadow 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.btn-aksi:active {
-    transform: translateY(1px);
-}
-
-.btn-tambah { background-color: #10b981; }
-.btn-simpan { background-color: #8b5cf6; box-shadow: 0 4px 6px rgba(139, 92, 246, 0.2); }
-.btn-excel { background-color: #0ea5e9; }
-.btn-pdf { background-color: #ef4444; }
-.btn-upload { background-color: #6b7280; }
-.btn-import { background-color: #f59e0b; }
-.btn-reset { background-color: #ec4899; }
-.btn-hapus { background-color: #fef2f2; color: #ef4444; padding: 4px 8px; font-size: 10px; font-weight: 800; border: 1px solid #fecaca; box-shadow: none; border-radius: 4px; }
-
-.input-file-hidden { display: none; }
-
-.keterangan-bawah {
-    margin-top: 15px;
-    font-size: 12px;
-    line-height: 1.6;
-}
-
-.keterangan-bawah p {
-    margin: 0 0 5px 0;
-}
-
-.tanda-tangan-area {
-    margin-top: 30px; 
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    text-align: center;
-}
-
-.tanda-tangan-item {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.tt-title {
-    font-weight: 700;
-    font-size: 13px;
-}
-
-.tt-space {
-    height: 100px; 
-    display: block;
-}
-
-.tt-name {
-    font-weight: 600;
-    font-size: 13px;
-    border-top: 1px solid #000; 
-    padding-top: 5px;
-    margin-top: auto;
-}
-
-/* ========================================= */
-/* CSS KHUSUS MODE PDF (PORTRAIT)            */
-/* ========================================= */
-
-.pdf-mode body {
-    background-color: white;
-}
-
-.pdf-mode .container-utama {
-    box-shadow: none;
-    border-radius: 0;
-    padding: 0;
-    margin: 0;
-    max-width: 100%;
-}
-
-.pdf-mode #area-cetak { 
-    padding: 20px 40px; 
-} 
-
-.pdf-mode .form { display: none !important; }
-.pdf-mode .th-aksi, .pdf-mode .td-aksi { display: none !important; }
-.pdf-mode .tombol-bawah { display: none !important; }
-
-.pdf-mode table {
-    border: 1px solid #000;
-    font-size: 9px !important; 
-}
-
-.pdf-mode th, .pdf-mode td {
-    border: 1px solid #000;
-    color: #000000 !important; 
-    background-color: transparent !important;
-    padding: 4px 2px !important; 
-}
-
-.pdf-mode td.nama-cell, .pdf-mode td.ket-cell {
-    white-space: nowrap !important;
-}
-
-.pdf-mode .editable:hover, .pdf-mode .editable:focus {
-    background-color: transparent;
-    color: inherit;
-    outline: none;
-}
-
-.pdf-mode thead th {
-    background-color: #f0f0f0 !important;
-    color: #000000 !important;
-}
-
-.pdf-mode tfoot td {
-    background-color: #f9f9f9 !important;
-    border: 1px solid #000;
-    color: #000000 !important;
-}
-
-.pdf-mode .input-box {
-    border: none !important;
-    border-bottom: 1px solid #000 !important;
-    font-size: 12px !important;
-    background: transparent !important;
-    font-weight: 600;
-    color: #000000 !important;
-    border-radius: 0;
-    padding: 5px 0;
-}
-
-.pdf-mode .info-container {
-    border: none;
-    background: transparent;
-    padding: 0;
-    margin-bottom: 5px;
-}
-
-.pdf-mode .kepada-section {
-    border: none;
-    background: transparent;
-    padding: 0;
-    margin-bottom: 5px !important;
-}
-
-.pdf-mode .kop-surat {
-    border-bottom: 3px double #000;
-    padding-bottom: 5px !important; 
-}
-
-.pdf-mode .kop-teks h1 { color: #000000 !important; }
-.pdf-mode .kop-teks p { color: #000000 !important; font-weight: 500 !important; }
-.pdf-mode .label-text { color: #000000 !important; font-weight: bold; }
-.pdf-mode h2 { font-size: 14px !important; color: #000000 !important; }
-
-.pdf-mode .keterangan-bawah {
-    margin-top: 10px;
-    font-size: 10px !important;
-}
-
-.pdf-mode .tanda-tangan-area {
-    margin-top: 20px;
-}
-
-.pdf-mode .tt-space {
-    height: 60px !important;
-}
-
-.pdf-mode .tt-name {
-    border-top: 1px solid #000;
-}
-
-</style>
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="container-utama" id="area-cetak">
-    
-    <!-- KOP SURAT -->
-    <div class="kop-surat">
-        <div class="kop-teks">
-            <h1>PT. SARANA KENCANA MULYA</h1>
-            <p>JL. FRANS SEDA NO. 08 KOMPLEK RUKO ( RUKOKU )</p>
-            <p>KEL. FATULULI – KEC. OEBOBO – KOTA KUPANG</p>
-            <p>TELP. 0380 – 8445208 / +62 813-2816-2259</p>
-        </div>
-        <img id="logo-preview" src="https://placehold.co/80x80/png?text=LOGO" alt="Logo Perusahaan" class="kop-logo">
-    </div>
+  <div class="bg-grid"></div>
+  <div class="particles" id="particles"></div>
+  <div class="toast-box" id="toastBox"></div>
 
-    <h2>Surat Jalan</h2>
+  <button class="settings-btn" id="settingsBtn" aria-label="Pengaturan API">
+    <i class="fas fa-cog"></i>
+  </button>
 
-    <!-- INFO UTAMA (4 KOLOM) -->
-    <div class="info-container">
-        <div class="info-item">
-            <div class="label-text">Tanggal</div>
-            <input type="text" id="tanggal" class="input-box" readonly>
-            <input type="date" id="tanggal-value" style="display:none;">
-        </div>
-        
-        <div class="info-item">
-            <div class="label-text">No. Surat Jalan</div>
-            <input type="text" id="noSurat" class="input-box" placeholder="Nomor Surat">
-        </div>
+  <div class="container">
 
-        <!-- BARU: Dari -->
-        <div class="info-item">
-            <div class="label-text">Dari</div>
-            <input type="text" id="dari" class="input-box" placeholder="Nama/Instansi Pengirim">
-        </div>
-        
-        <div class="info-item">
-            <div class="label-text">Tujuan</div>
-            <input type="text" id="tujuan" class="input-box" placeholder="Nama Penerima/Toko">
-        </div>
-    </div>
+    <!-- HEADER -->
+    <header class="header">
+      <div class="coin-icon">D</div>
+      <div class="header-text">
+        <h1>Kalkulasi Pembelian DOGE</h1>
+        <p>Track harga rata-rata, total modal, dan profit/loss</p>
+      </div>
+      <div class="status-badge">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Memeriksa...</span>
+      </div>
+    </header>
 
-    <!-- KEPADA YTH -->
-    <div class="kepada-section">
-        <div class="label-text">Kepada Yth.</div>
-        <input type="text" id="kepadaYth" class="input-box" placeholder="Nama Person/Atasan/Direktur">
+    <!-- CONFIG -->
+    <div class="config-bar" id="configBar">
+      <label for="apiUrlInput">Google Apps Script Web App URL</label>
+      <input type="url" id="apiUrlInput" placeholder="https://script.google.com/macros/s/xxxx/exec" />
+      <div class="cfg-btns">
+        <button class="btn-cfg-save" id="cfgSave">Simpan & Test</button>
+        <button class="btn-cfg-cancel" id="cfgCancel">Batal</button>
+      </div>
     </div>
 
     <!-- FORM INPUT -->
-    <div class="form">
-        <input type="text" id="nama" class="nama" placeholder="Nama Sparepart">
-        <input type="number" id="qty" placeholder="Qty">
-        <input type="number" id="p" placeholder="P">
-        <input type="number" id="l" placeholder="L">
-        <input type="number" id="t" placeholder="T">
-        <input type="number" id="colly" placeholder="Colly">
-        <input type="text" id="ket" placeholder="Keterangan">
-        <button class="btn-aksi btn-tambah" onclick="tambah()">Tambah</button>
+    <section class="input-section" aria-label="Form tambah transaksi">
+      <h2><i class="fas fa-plus-circle"></i> Tambah Transaksi</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="inCoin">Coin</label>
+          <select id="inCoin">
+            <option value="DOGE" selected>DOGE</option>
+            <option value="BTC">BTC</option>
+            <option value="ETH">ETH</option>
+            <option value="SOL">SOL</option>
+            <option value="XRP">XRP</option>
+            <option value="ADA">ADA</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="inDate">Tanggal Beli</label>
+          <input type="date" id="inDate" />
+        </div>
+        <div class="form-group">
+          <label for="inPrice">Harga Satuan (Rp)</label>
+          <input type="number" id="inPrice" placeholder="0" min="0" step="any" />
+        </div>
+        <div class="form-group">
+          <label for="inTotal">Total Belanja (Rp)</label>
+          <input type="number" id="inTotal" placeholder="0" min="0" step="any" />
+        </div>
+      </div>
+      <button class="btn-add" id="btnAdd"><i class="fas fa-plus"></i> Tambah</button>
+    </section>
+
+    <!-- HARGA SAAT INI -->
+    <section class="current-price-section" aria-label="Harga saat ini">
+      <label><i class="fas fa-chart-line"></i> Harga Saat Ini (Rp)</label>
+      <input type="number" id="curPrice" placeholder="Masukkan harga terkini" min="0" step="any" />
+    </section>
+
+    <!-- SUMMARY -->
+    <div class="summary-grid">
+      <div class="summary-card sc-koin">
+        <div class="card-label"><i class="fas fa-coins"></i> Total Koin</div>
+        <div class="card-value t-y" id="sKoin">0</div>
+      </div>
+      <div class="summary-card sc-modal">
+        <div class="card-label"><i class="fas fa-wallet"></i> Total Modal</div>
+        <div class="card-value t-f" id="sModal">Rp 0</div>
+      </div>
+      <div class="summary-card sc-avg">
+        <div class="card-label"><i class="fas fa-calculator"></i> Harga Rata-rata</div>
+        <div class="card-value t-g" id="sAvg">Rp 0</div>
+      </div>
+      <div class="summary-card sc-pnl">
+        <div class="card-label"><i class="fas fa-chart-pie"></i> Profit / Loss</div>
+        <div class="card-value" id="sPnl">Rp 0</div>
+        <div class="card-sub" id="sPnlPct">0%</div>
+      </div>
     </div>
 
-    <br>
+    <!-- PNL DETAIL -->
+    <section class="pnl-bar" id="pnlBar" style="display:none;" aria-label="Detail P/L">
+      <h3><i class="fas fa-signal"></i> Detail Perhitungan</h3>
+      <div class="pnl-row">
+        <span class="pnl-label">Nilai Investasi Saat Ini</span>
+        <span class="pnl-val t-f" id="pnCur">Rp 0</span>
+      </div>
+      <div class="pnl-row">
+        <span class="pnl-label">Total Modal Awal</span>
+        <span class="pnl-val t-f" id="pnCost">Rp 0</span>
+      </div>
+      <div class="pnl-row">
+        <span class="pnl-label">Profit / Loss</span>
+        <span class="pnl-val" id="pnAmt">Rp 0</span>
+      </div>
+      <div class="pnl-row">
+        <span class="pnl-label">Persentase</span>
+        <span class="pnl-val" id="pnPct">0%</span>
+      </div>
+      <div class="pnl-progress">
+        <div class="pnl-fill" id="pnFill" style="width:50%;background:var(--muted);"></div>
+      </div>
+    </section>
 
-    <table id="tabel">
-        <thead>
+    <!-- TABLE -->
+    <section class="table-section" aria-label="Riwayat transaksi">
+      <div class="table-top">
+        <h2><i class="fas fa-list-ul"></i> Riwayat Transaksi</h2>
+        <span class="table-cnt" id="tCnt">0 transaksi</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
             <tr>
-                <th rowspan="2" style="width: 40px;">No</th>
-                <th rowspan="2">Nama Sparepart</th>
-                <th rowspan="2" style="width: 50px;">Qty</th>
-                <th colspan="3" style="width: 150px;">Ukuran</th>
-                <th rowspan="2" style="width: 70px;">M<sup>3</sup></th>
-                <th rowspan="2" style="width: 60px;">Colly</th>
-                <th rowspan="2">Keterangan</th>
-                <th rowspan="2" class="th-aksi" style="width: 50px;">Aksi</th>
+              <th>No</th>
+              <th>Coin</th>
+              <th>Tanggal</th>
+              <th>Harga Satuan</th>
+              <th>Total Belanja</th>
+              <th>Jumlah Koin</th>
+              <th>Aksi</th>
             </tr>
-            <tr>
-                <th>P</th>
-                <th>L</th>
-                <th>T</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-        <tfoot>
-            <tr>
-                <td colspan="2" style="text-align:right; padding-right: 10px;"><b>TOTAL</b></td>
-                <td id="totalQty"><b>0</b></td>
-                <td colspan="3"></td>
-                <td id="totalm3"><b>0</b></td>
-                <td id="totalcolly"><b>0</b></td>
-                <td colspan="1"></td>
-                <td class="td-aksi"></td> 
-            </tr>
-        </tfoot>
-    </table>
+          </thead>
+          <tbody id="tBody">
+            <tr><td colspan="7">
+              <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>Belum ada transaksi. Tambahkan transaksi pertama Anda.</p>
+              </div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-    <!-- KETERANGAN BAWAH TABEL -->
-    <div class="keterangan-bawah">
-        <p><strong>Data Rincian Sparepart Terlampir !</strong></p>
-        <p>Demikian Surat Jalan ini dibuat, atas perhatian dan kerjasamanya kami ucapkan terimakasih.</p>
-    </div>
+    <footer class="footer">
+      Data tersimpan di <a href="https://docs.google.com/spreadsheets/d/1Sb0ao6UtW-pk_NzbADRyyOgGBImhJYfHdoMCpYffHuI/edit" target="_blank">Google Sheet</a> &mdash; Kalkulasi Pembelian DOGE
+    </footer>
 
-    <!-- BAGIAN TANDA TANGAN -->
-    <div class="tanda-tangan-area">
-        <div class="tanda-tangan-item">
-            <div class="tt-title">Pengirim</div>
-            <div class="tt-space"></div>
-            <div class="tt-name">&nbsp;</div>
-        </div>
-        <div class="tanda-tangan-item">
-            <div class="tt-title">Mengetahui</div>
-            <div class="tt-space"></div>
-            <div class="tt-name">&nbsp;</div>
-        </div>
-        <div class="tanda-tangan-item">
-            <div class="tt-title">Expedisi</div>
-            <div class="tt-space"></div>
-            <div class="tt-name">&nbsp;</div>
-        </div>
-        <div class="tanda-tangan-item">
-            <div class="tt-title">Penerima</div>
-            <div class="tt-space"></div>
-            <div class="tt-name">&nbsp;</div>
-        </div>
-    </div>
+  </div>
 
-</div>
+  <script>
+    // ============================================================
+    // KONFIGURASI
+    // GANTI URL INI dengan URL deploy Google Apps Script Anda
+    // ============================================================
+    const DEFAULT_API_URL = 'https://script.google.com/macros/s/GANTI_DENGAN_URL_DEPLOY_ANDA/exec';
 
-<br>
+    let API_URL = localStorage.getItem('gs_api_url') || DEFAULT_API_URL;
+    let transactions = [];
 
-<div class="tombol-bawah" style="text-align: center; margin-top: 20px;">
-    <input type="file" id="file-upload" class="input-file-hidden" accept="image/*" onchange="previewLogo(event)">
-    <input type="file" id="file-excel" class="input-file-hidden" accept=".xlsx, .xls" onchange="importExcel(event)">
-    
-    <button class="btn-aksi btn-upload" onclick="document.getElementById('file-upload').click()">Upload Logo</button>
-    <button class="btn-aksi btn-simpan" onclick="simpanData()">Simpan Data</button>
-    <button class="btn-aksi btn-import" onclick="document.getElementById('file-excel').click()">Import Excel</button>
-    <button class="btn-aksi btn-excel" onclick="downloadExcel()">Download Excel</button>
-    <button class="btn-aksi btn-pdf" onclick="downloadPDF()">Download PDF</button>
-    <button class="btn-aksi btn-reset" onclick="resetForm()">Reset</button>
-</div>
+    // DOM helper
+    const $ = id => document.getElementById(id);
 
-<script>
-    let no = 1;
-
-    // ==========================================
-    // FUNGSI FORMAT TANGGAL
-    // ==========================================
-    
-    const hariIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const bulanIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-
-    function formatTanggalIndo(dateStr) {
-        if (!dateStr) return "";
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return "";
-        
-        const namaHari = hariIndo[date.getDay()];
-        const tanggal = date.getDate();
-        const namaBulan = bulanIndo[date.getMonth()];
-        const tahun = date.getFullYear();
-
-        return `${namaHari}, ${tanggal} ${namaBulan} ${tahun}`;
+    // ============================================================
+    // UTILITAS FORMAT
+    // ============================================================
+    function fRp(n) {
+      if (n == null || isNaN(n)) return 'Rp 0';
+      const abs = Math.abs(n);
+      const s = abs.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+      return (n < 0 ? '-' : '') + 'Rp ' + s;
+    }
+    function fKoin(n) {
+      if (!n || isNaN(n)) return '0';
+      return n.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 6 });
     }
 
-    // ==========================================
-    // LOGICA LOCAL STORAGE (SIMPAN & MUAT DATA)
-    // ==========================================
-
-    function simpanData() {
-        const data = {
-            tanggal: document.getElementById('tanggal-value').value,
-            noSurat: document.getElementById('noSurat').value,
-            dari: document.getElementById('dari').value, // Simpan Dari
-            tujuan: document.getElementById('tujuan').value,
-            kepadaYth: document.getElementById('kepadaYth').value,
-            logo: document.getElementById('logo-preview').src,
-            items: []
-        };
-
-        const rows = document.querySelectorAll("#tabel tbody tr");
-        rows.forEach(row => {
-            const cells = row.cells;
-            if(cells[1].innerText.trim() !== "") {
-                data.items.push({
-                    nama: cells[1].innerText,
-                    qty: cells[2].innerText,
-                    p: cells[3].innerText,
-                    l: cells[4].innerText,
-                    t: cells[5].innerText,
-                    colly: cells[7].innerText,
-                    ket: cells[8].innerText
-                });
-            }
-        });
-
-        localStorage.setItem('suratJalanData', JSON.stringify(data));
-        alert("Data berhasil disimpan ke browser!");
+    // ============================================================
+    // TOAST
+    // ============================================================
+    function toast(msg, type = 'info') {
+      const box = $('toastBox');
+      const el = document.createElement('div');
+      el.className = 'toast ' + type;
+      const ic = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+      el.innerHTML = '<i class="fas ' + ic + '"></i> ' + msg;
+      box.appendChild(el);
+      setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(40px)'; el.style.transition = '0.3s'; setTimeout(() => el.remove(), 300); }, 3500);
     }
 
-    function muatData() {
-        const storedData = localStorage.getItem('suratJalanData');
-        if (storedData) {
-            const data = JSON.parse(storedData);
+    // ============================================================
+    // KONEKSI KE GOOGLE SHEET
+    // ============================================================
 
-            const tanggalVal = data.tanggal || new Date().toISOString().split('T')[0];
-            document.getElementById('tanggal-value').value = tanggalVal;
-            document.getElementById('tanggal').value = formatTanggalIndo(tanggalVal);
-            
-            document.getElementById('noSurat').value = data.noSurat || "";
-            document.getElementById('dari').value = data.dari || ""; // Muat Dari
-            document.getElementById('tujuan').value = data.tujuan || "";
-            document.getElementById('kepadaYth').value = data.kepadaYth || "";
-            
-            if(data.logo) {
-                document.getElementById('logo-preview').src = data.logo;
-            }
-
-            if(data.items && data.items.length > 0) {
-                data.items.forEach(item => {
-                    tambahManual(item.nama, item.qty, item.p, item.l, item.t, item.colly, item.ket);
-                });
-            }
-        } else {
-            setTanggalHariIni();
+    async function checkConn() {
+      const dot = $('statusDot');
+      const txt = $('statusText');
+      dot.className = 'status-dot';
+      txt.textContent = 'Memeriksa koneksi...';
+      try {
+        const r = await fetch(API_URL + '?action=ping', { redirect: 'follow' });
+        const j = await r.json();
+        if (j.status === 'success') {
+          dot.className = 'status-dot ok';
+          txt.textContent = 'Terhubung ke Sheet';
+          return true;
         }
+        throw new Error(j.message);
+      } catch (e) {
+        dot.className = 'status-dot';
+        txt.textContent = 'Offline — data lokal';
+        return false;
+      }
     }
 
-    function setTanggalHariIni() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('tanggal-value').value = today;
-        document.getElementById('tanggal').value = formatTanggalIndo(today);
+    async function fetchData() {
+      try {
+        const r = await fetch(API_URL + '?action=read', { redirect: 'follow' });
+        const j = await r.json();
+        if (j.status === 'success') {
+          transactions = j.data || [];
+          render(); calc(); return;
+        }
+      } catch (e) {
+        console.warn('Fetch gagal, pakai lokal:', e);
+      }
+      transactions = JSON.parse(localStorage.getItem('doge_tx') || '[]');
+      render(); calc();
     }
 
-    // ==========================================
-    // LOGICA DASAR APLIKASI
-    // ==========================================
+    async function addTx(tx) {
+      const p = new URLSearchParams({ action: 'add', coin: tx.coin, tanggal: tx.tanggal, harga: tx.harga, total: tx.total });
+      try {
+        const r = await fetch(API_URL + '?' + p.toString(), { redirect: 'follow' });
+        const j = await r.json();
+        if (j.status === 'success') {
+          toast('Transaksi disimpan ke Google Sheet', 'success');
+          await fetchData(); return true;
+        }
+        throw new Error(j.message);
+      } catch (e) {
+        console.warn('Simpan lokal:', e);
+        tx.id = 'TX-' + Date.now().toString(36).toUpperCase();
+        tx.timestamp = new Date().toISOString();
+        tx.jumlah = tx.harga > 0 ? tx.total / tx.harga : 0;
+        transactions.push(tx);
+        saveLocal();
+        toast('Disimpan lokal (Sheet tidak terhubung)', 'error');
+        render(); calc(); return true;
+      }
+    }
 
-    document.addEventListener("DOMContentLoaded", function() {
-        muatData();
+    async function delTx(id) {
+      try {
+        const p = new URLSearchParams({ action: 'delete', id: id });
+        const r = await fetch(API_URL + '?' + p.toString(), { redirect: 'follow' });
+        const j = await r.json();
+        if (j.status === 'success') {
+          toast('Transaksi dihapus dari Sheet', 'success');
+          await fetchData(); return;
+        }
+      } catch (e) { console.warn('Hapus lokal:', e); }
+      transactions = transactions.filter(t => t.id !== id);
+      saveLocal();
+      toast('Dihapus dari data lokal', 'info');
+      render(); calc();
+    }
+
+    function saveLocal() { localStorage.setItem('doge_tx', JSON.stringify(transactions)); }
+
+    // ============================================================
+    // RENDER TABEL
+    // ============================================================
+    function render() {
+      const tbody = $('tBody');
+      if (!transactions.length) {
+        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada transaksi. Tambahkan transaksi pertama Anda.</p></div></td></tr>';
+        $('tCnt').textContent = '0 transaksi';
+        return;
+      }
+      tbody.innerHTML = transactions.map((t, i) =>
+        '<tr>' +
+        '<td style="color:var(--muted)">' + (i + 1) + '</td>' +
+        '<td><span class="td-coin">' + (t.coin || 'DOGE') + '</span></td>' +
+        '<td class="td-date">' + (t.tanggal || '-') + '</td>' +
+        '<td>' + fRp(t.harga) + '</td>' +
+        '<td class="td-total">' + fRp(t.total) + '</td>' +
+        '<td class="td-jumlah">' + fKoin(t.jumlah) + '</td>' +
+        '<td><button class="btn-del" onclick="handleDel(\'' + t.id + '\')"><i class="fas fa-trash-alt"></i></button></td>' +
+        '</tr>'
+      ).join('');
+      $('tCnt').textContent = transactions.length + ' transaksi';
+    }
+
+    // ============================================================
+    // KALKULASI
+    // ============================================================
+    function calc() {
+      let tKoin = 0, tModal = 0;
+      transactions.forEach(t => {
+        tKoin += Number(t.jumlah) || 0;
+        tModal += Number(t.total) || 0;
+      });
+
+      const avg = tKoin > 0 ? tModal / tKoin : 0;
+      const cur = parseFloat($('curPrice').value) || 0;
+      const curVal = tKoin * cur;
+      const pnl = curVal - tModal;
+      const pnlPct = tModal > 0 ? (pnl / tModal) * 100 : 0;
+
+      $('sKoin').textContent = fKoin(tKoin);
+      $('sModal').textContent = fRp(tModal);
+      $('sAvg').textContent = fRp(avg);
+
+      const pnlEl = $('sPnl');
+      const pctEl = $('sPnlPct');
+      pnlEl.textContent = fRp(pnl);
+      pnlEl.className = 'card-value ' + (pnl >= 0 ? 't-g' : 't-r');
+      pctEl.textContent = (pnl >= 0 ? '+' : '') + pnlPct.toFixed(2) + '%';
+      pctEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--accent)';
+
+      // Detail PNL
+      if (cur > 0 && tKoin > 0) {
+        $('pnlBar').style.display = 'block';
+        $('pnCur').textContent = fRp(curVal);
+        $('pnCost').textContent = fRp(tModal);
+        $('pnAmt').textContent = fRp(pnl);
+        $('pnAmt').className = 'pnl-val ' + (pnl >= 0 ? 't-g' : 't-r');
+        $('pnPct').textContent = (pnl >= 0 ? '+' : '') + pnlPct.toFixed(2) + '%';
+        $('pnPct').style.color = pnl >= 0 ? 'var(--green)' : 'var(--accent)';
+        const prog = Math.max(0, Math.min(100, 50 + pnlPct / 2));
+        const fill = $('pnFill');
+        fill.style.width = prog + '%';
+        fill.style.background = pnl >= 0 ? 'linear-gradient(90deg,var(--green),var(--green2))' : 'linear-gradient(90deg,var(--accent),#ff6b81)';
+      } else {
+        $('pnlBar').style.display = 'none';
+      }
+    }
+
+    // ============================================================
+    // EVENT HANDLERS
+    // ============================================================
+
+    // Tambah transaksi
+    $('btnAdd').addEventListener('click', async () => {
+      const coin = $('inCoin').value;
+      const tanggal = $('inDate').value;
+      const harga = parseFloat($('inPrice').value);
+      const total = parseFloat($('inTotal').value);
+
+      if (!tanggal) { toast('Tanggal harus diisi', 'error'); $('inDate').focus(); return; }
+      if (!harga || harga <= 0) { toast('Harga satuan harus lebih dari 0', 'error'); $('inPrice').focus(); return; }
+      if (!total || total <= 0) { toast('Total belanja harus lebih dari 0', 'error'); $('inTotal').focus(); return; }
+
+      const btn = $('btnAdd');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+
+      const ok = await addTx({ coin, tanggal, harga, total });
+      if (ok) { $('inDate').value = new Date().toISOString().slice(0, 10); $('inPrice').value = ''; $('inTotal').value = ''; }
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-plus"></i> Tambah';
     });
 
-    function resetForm() {
-        if(confirm("Apakah Anda yakin ingin mereset semua data? Data yang tersimpan juga akan terhapus.")) {
-            localStorage.removeItem('suratJalanData');
-            document.querySelector("#tabel tbody").innerHTML = "";
-            setTanggalHariIni();
-            document.getElementById('noSurat').value = "";
-            document.getElementById('dari').value = ""; // Reset Dari
-            document.getElementById('tujuan').value = "";
-            document.getElementById('kepadaYth').value = "";
-            document.getElementById('logo-preview').src = "https://placehold.co/80x80/png?text=LOGO";
-            no = 1;
-            updateTotal();
-        }
+    // Hapus transaksi
+    function handleDel(id) {
+      if (!id) return;
+      // Efek visual sebelum hapus
+      const btn = event.target.closest('.btn-del');
+      if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true; }
+      delTx(id);
     }
 
-    function previewLogo(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('logo-preview').src = e.target.result;
-            }
-            reader.readAsDataURL(file);
-        }
-    }
+    // Harga saat ini berubah
+    $('curPrice').addEventListener('input', calc);
 
-    function importExcel(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-            
-            jsonData.forEach((row, index) => {
-                if (index === 0) return; 
-
-                let nama = row[0] || "";
-                let qty = parseFloat(row[1]) || 0;
-                let p = parseFloat(row[2]) || 0;
-                let l = parseFloat(row[3]) || 0;
-                let t = parseFloat(row[4]) || 0;
-                let colly = parseFloat(row[5]) || 0;
-                let ket = row[6] || "";
-
-                if (!nama && !qty && !p) return;
-                tambahManual(nama, qty, p, l, t, colly, ket);
-            });
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    function handleEdit(e) {
-        if (e.target.classList.contains('editable')) {
-            updateTotal(); 
-        }
-    }
-
-    document.querySelector("#tabel tbody").addEventListener('input', handleEdit);
-
-    function tambahManual(nama, qty, p, l, t, colly, ket) {
-        let m3Value = (p * l * t) / 1000000;
-        let tabel = document.querySelector("#tabel tbody");
-        let row = tabel.insertRow();
-
-        row.innerHTML =
-        `<td>${no++}</td>
-        <td class="nama-cell"><span class="editable" contenteditable="true">${nama}</span></td>
-        <td><span class="editable" contenteditable="true">${qty}</span></td>
-        <td><span class="editable" contenteditable="true">${p}</span></td>
-        <td><span class="editable" contenteditable="true">${l}</span></td>
-        <td><span class="editable" contenteditable="true">${t}</span></td>
-        <td class="m3">${m3Value.toFixed(3)}</td>
-        <td><span class="editable" contenteditable="true">${colly}</span></td>
-        <td class="ket-cell"><span class="editable" contenteditable="true">${ket}</span></td>
-        <td class="td-aksi"><button class="btn-aksi btn-hapus" onclick="hapus(this)">X</button></td>`;
-
-        row.querySelectorAll('.editable').forEach(el => {
-            el.addEventListener('blur', function() {
-                const parentRow = this.closest('tr');
-                if(parentRow) {
-                    const cells = parentRow.cells;
-                    let pVal = parseFloat(cells[3].innerText) || 0;
-                    let lVal = parseFloat(cells[4].innerText) || 0;
-                    let tVal = parseFloat(cells[5].innerText) || 0;
-                    let m3 = (pVal * lVal * tVal) / 1000000;
-                    cells[6].innerText = m3.toFixed(3);
-                    updateTotal();
-                }
-            });
-        });
-
-        updateTotal();
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-        const inputs = document.querySelectorAll('.form input');
-        inputs.forEach(input => {
-            input.addEventListener("keypress", function(event) {
-                if (event.key === "Enter") {
-                    event.preventDefault();
-                    tambah();
-                }
-            });
-        });
+    // Settings
+    $('settingsBtn').addEventListener('click', () => {
+      const bar = $('configBar');
+      bar.classList.toggle('show');
+      if (bar.classList.contains('show')) { $('apiUrlInput').value = API_URL; $('apiUrlInput').focus(); }
     });
+    $('cfgSave').addEventListener('click', () => {
+      const url = $('apiUrlInput').value.trim();
+      if (url) {
+        API_URL = url;
+        localStorage.setItem('gs_api_url', API_URL);
+        $('configBar').classList.remove('show');
+        toast('API URL disimpan. Menguji koneksi...', 'info');
+        checkConn().then(ok => { if (ok) fetchData(); });
+      }
+    });
+    $('cfgCancel').addEventListener('click', () => { $('configBar').classList.remove('show'); });
 
-    function tambah(){
-        let nama = document.getElementById("nama").value;
-        let qty = parseFloat(document.getElementById("qty").value) || 0;
-        let p = parseFloat(document.getElementById("p").value) || 0;
-        let l = parseFloat(document.getElementById("l").value) || 0;
-        let t = parseFloat(document.getElementById("t").value) || 0;
-        let colly = parseFloat(document.getElementById("colly").value) || 0;
-        let ket = document.getElementById("ket").value;
+    // Default tanggal hari ini
+    $('inDate').value = new Date().toISOString().slice(0, 10);
 
-        if(!nama) { alert("Nama Sparepart harus diisi!"); return; }
-
-        tambahManual(nama, qty, p, l, t, colly, ket);
-        
-        const ids = ['nama', 'qty', 'p', 'l', 't', 'colly', 'ket'];
-        ids.forEach(id => document.getElementById(id).value = '');
-        document.getElementById("nama").focus();
+    // ============================================================
+    // PARTIKEL LATAR
+    // ============================================================
+    function initParticles() {
+      const c = $('particles');
+      const colors = ['rgba(233,69,96,0.3)', 'rgba(240,185,11,0.25)', 'rgba(0,214,143,0.2)'];
+      for (let i = 0; i < 18; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const sz = 2 + Math.random() * 4;
+        p.style.width = sz + 'px';
+        p.style.height = sz + 'px';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.bottom = '-10px';
+        p.style.background = colors[Math.floor(Math.random() * colors.length)];
+        p.style.animationDuration = (10 + Math.random() * 18) + 's';
+        p.style.animationDelay = Math.random() * 12 + 's';
+        c.appendChild(p);
+      }
     }
 
-    function hapus(btn){
-        btn.parentElement.parentElement.remove();
-        let rows = document.querySelectorAll("#tabel tbody tr");
-        no = 1;
-        rows.forEach(row => { row.cells[0].innerText = no++; });
-        updateTotal();
+    // ============================================================
+    // INIT
+    // ============================================================
+    async function init() {
+      initParticles();
+      await checkConn();
+      await fetchData();
     }
 
-    function updateTotal(){
-        let totalm3 = 0; 
-        let totalcolly = 0;
-        let totalQty = 0; 
-
-        document.querySelectorAll("#tabel tbody tr").forEach(row => {
-            totalm3 += parseFloat(row.cells[6].innerText) || 0;
-            totalcolly += parseFloat(row.cells[7].innerText) || 0;
-            totalQty += parseFloat(row.cells[2].innerText) || 0;
-        });
-        
-        document.getElementById("totalm3").innerText = totalm3.toFixed(3);
-        document.getElementById("totalcolly").innerText = totalcolly;
-        document.getElementById("totalQty").innerText = totalQty; 
-    }
-
-    function downloadExcel() {
-        let cloneTable = document.getElementById("tabel").cloneNode(true);
-        let rows = cloneTable.querySelectorAll("tr");
-        rows.forEach(row => { if (row.lastElementChild) row.deleteCell(-1); });
-
-        let wb = XLSX.utils.book_new();
-        
-        let tanggal = document.getElementById('tanggal').value; 
-        let noSurat = document.getElementById("noSurat").value;
-        let dari = document.getElementById("dari").value; // Ambil Dari
-        let tujuan = document.getElementById("tujuan").value;
-        let kepadaYth = document.getElementById("kepadaYth").value;
-
-        let headerData = [
-            ["PT. SARANA KENCANA MULYA"],
-            ["JL. FRANS SEDA NO. 08 KOMPLEK RUKO ( RUKOKU )"],
-            ["Surat Jalan"],
-            ["Tanggal", tanggal, "No Surat", noSurat],
-            ["Dari", dari, "Tujuan", tujuan], // Modifikasi header Excel
-            ["Kepada Yth.", kepadaYth],
-            []
-        ];
-
-        let ws = XLSX.utils.table_to_sheet(cloneTable);
-        let wsData = XLSX.utils.sheet_to_json(ws, { header: 1 });
-        let finalData = headerData.concat(wsData);
-        
-        finalData.push([]);
-        finalData.push(["Data Rincian Sparepart Bekas Terlampir !"]);
-        finalData.push(["Demikian Surat Jalan ini kami buat, atas perhatian dan kerja samanya kami ucapkan terima kasih."]);
-        finalData.push([]);
-        
-        finalData.push(["Pengirim", "Mengetahui", "Expedisi", "Penerima"]);
-        finalData.push(["", "", "", ""]);
-
-        let newWs = XLSX.utils.aoa_to_sheet(finalData);
-        XLSX.utils.book_append_sheet(wb, newWs, "Surat Jalan");
-        XLSX.writeFile(wb, "Surat_Jalan.xlsx");
-    }
-
-    async function downloadPDF() {
-        const { jsPDF } = window.jspdf;
-        const element = document.getElementById('area-cetak');
-        
-        document.body.classList.add('pdf-mode');
-
-        const canvas = await html2canvas(element, {
-            scale: 3, // Resolusi Tinggi (HD)
-            useCORS: true,
-            allowTaint: true, 
-            scrollX: 0,
-            scrollY: 0,
-            windowWidth: 794 
-        });
-
-        document.body.classList.remove('pdf-mode');
-        
-        const imgData = canvas.toDataURL('image/jpeg', 1.0);
-        
-        const pdf = new jsPDF({ orientation: 'p', unit: 'px', format: 'a4' });
-        
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        
-        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-        
-        const width = imgWidth * ratio;
-        const height = imgHeight * ratio;
-        const x = (pdfWidth - width) / 2;
-        const y = 10; 
-        
-        pdf.addImage(imgData, 'JPEG', x, y, width, height);
-        pdf.save("Surat_Jalan.pdf");
-    }
-</script>
+    init();
+  </script>
 </body>
 </html>
