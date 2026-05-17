@@ -6,7 +6,9 @@
   <title>Kalkulasi Pembelian DOGE</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  
   <style>
+    /* ====== CSS VARIABLES (MODE GELAP - DEFAULT) ====== */
     :root {
       --bg: #0b0e14;
       --bg2: #111621;
@@ -20,14 +22,37 @@
       --green: #00d68f;
       --green2: #00f5a0;
       --gold: #f0b90b;
+      --input-bg: #111621;
+      --shadow: rgba(0, 0, 0, 0.4);
     }
+
+    /* ====== MODE TERANG ====== */
+    [data-theme="light"] {
+      --bg: #f0f2f5;
+      --bg2: #ffffff;
+      --card: #ffffff;
+      --card2: #f8f9fa;
+      --border: #d1d9e6;
+      --fg: #1a1a2e;
+      --muted: #5a6478;
+      --accent: #d63447;
+      --accent2: #e94560;
+      --green: #00b377;
+      --green2: #00d68f;
+      --gold: #d4a017;
+      --input-bg: #f0f2f5;
+      --shadow: rgba(163, 177, 198, 0.3);
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
       font-family: 'Space Grotesk', sans-serif;
       background: var(--bg);
       color: var(--fg);
       min-height: 100vh;
       overflow-x: hidden;
+      transition: background 0.4s ease, color 0.4s ease;
     }
 
     /* ====== ANIMATED BACKGROUND ====== */
@@ -37,15 +62,18 @@
         radial-gradient(ellipse 80% 60% at 50% 0%, rgba(233,69,96,0.08) 0%, transparent 60%),
         radial-gradient(ellipse 60% 50% at 80% 80%, rgba(0,214,143,0.05) 0%, transparent 50%),
         linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+      transition: background 0.4s ease;
     }
     .bg-grid::after {
       content: '';
       position: absolute; inset: 0;
       background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 0H0v60' fill='none' stroke='%23253045' stroke-width='0.5'/%3E%3C/svg%3E");
-      opacity: 0.3;
+      opacity: 0.15;
+    }
+    [data-theme="light"] .bg-grid::after {
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 0H0v60' fill='none' stroke='%23d1d9e6' stroke-width='0.5'/%3E%3C/svg%3E");
     }
 
-    /* ====== PARTICLES ====== */
     .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
     .particle {
       position: absolute; border-radius: 50%;
@@ -96,12 +124,18 @@
       background-clip: text;
     }
     .header-text p { color: var(--muted); font-size: 13px; margin-top: 4px; }
-    .status-badge {
+    
+    .header-actions {
       margin-left: auto;
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .status-badge {
       display: flex; align-items: center; gap: 8px;
       padding: 8px 16px; background: var(--card);
       border: 1px solid var(--border); border-radius: 100px;
       font-size: 12px; color: var(--muted); white-space: nowrap;
+      transition: background 0.3s, border-color 0.3s;
     }
     .status-dot {
       width: 8px; height: 8px; border-radius: 50%;
@@ -109,25 +143,44 @@
     }
     .status-dot.ok { background: var(--green); box-shadow: 0 0 8px rgba(0,214,143,0.5); }
 
+    /* ====== TOGGLE TEMA ====== */
+    .theme-toggle {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--fg);
+      font-size: 16px; transition: all 0.3s;
+    }
+    .theme-toggle:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      box-shadow: 0 0 12px rgba(240,185,11,0.2);
+    }
+
     /* ====== CONFIG BAR ====== */
     .config-bar {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 12px; padding: 16px; margin-bottom: 24px; display: none;
+      transition: background 0.3s, border-color 0.3s;
     }
     .config-bar.show { display: block; animation: slideDown 0.3s ease; }
     @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
     .config-bar label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: block; }
     .config-bar input {
-      width: 100%; padding: 10px 12px; background: var(--bg2);
+      width: 100%; padding: 10px 12px; background: var(--input-bg);
       border: 1px solid var(--border); border-radius: 8px;
       color: var(--fg); font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      transition: background 0.3s, border-color 0.3s;
     }
     .config-bar input:focus { outline: none; border-color: var(--accent); }
     .cfg-btns { display: flex; gap: 8px; margin-top: 12px; }
     .cfg-btns button {
       padding: 8px 20px; border-radius: 8px; border: none; cursor: pointer;
-      font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 13px;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 13px; transition: opacity 0.2s;
     }
+    .cfg-btns button:hover { opacity: 0.9; }
     .btn-cfg-save { background: var(--accent); color: #fff; }
     .btn-cfg-cancel { background: var(--card2); color: var(--muted); }
 
@@ -135,6 +188,7 @@
     .input-section {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 16px; padding: 24px; margin-bottom: 24px;
+      transition: background 0.3s, border-color 0.3s;
     }
     .input-section h2 {
       font-size: 15px; font-weight: 600; margin-bottom: 20px;
@@ -152,17 +206,17 @@
       text-transform: uppercase; letter-spacing: 0.5px;
     }
     .form-group input, .form-group select {
-      width: 100%; padding: 11px 14px; background: var(--bg2);
+      width: 100%; padding: 11px 14px; background: var(--input-bg);
       border: 1px solid var(--border); border-radius: 10px;
       color: var(--fg); font-family: 'JetBrains Mono', monospace;
-      font-size: 14px; transition: border-color 0.2s, box-shadow 0.2s;
+      font-size: 14px; transition: border-color 0.2s, box-shadow 0.2s, background 0.3s;
     }
     .form-group input:focus, .form-group select:focus {
       outline: none; border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(233,69,96,0.15);
     }
     .form-group select { cursor: pointer; }
-    .form-group select option { background: var(--bg2); color: var(--fg); }
+    .form-group select option { background: var(--card); color: var(--fg); }
     .btn-add {
       margin-top: 20px; width: 100%; padding: 14px;
       background: linear-gradient(135deg, var(--accent), #c23152);
@@ -181,6 +235,7 @@
       background: var(--card); border: 1px solid var(--border);
       border-radius: 16px; padding: 20px 24px; margin-bottom: 24px;
       display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+      transition: background 0.3s, border-color 0.3s;
     }
     .current-price-section label {
       font-size: 14px; font-weight: 500; white-space: nowrap;
@@ -189,9 +244,10 @@
     .current-price-section label i { color: var(--green); }
     .current-price-section input {
       flex: 1; min-width: 160px; padding: 10px 14px;
-      background: var(--bg2); border: 1px solid var(--border);
+      background: var(--input-bg); border: 1px solid var(--border);
       border-radius: 10px; color: var(--fg);
       font-family: 'JetBrains Mono', monospace; font-size: 14px;
+      transition: background 0.3s, border-color 0.3s;
     }
     .current-price-section input:focus { outline: none; border-color: var(--green); }
 
@@ -204,7 +260,9 @@
     .summary-card {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 14px; padding: 20px; position: relative; overflow: hidden;
+      transition: background 0.3s, border-color 0.3s, transform 0.2s;
     }
+    .summary-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px var(--shadow); }
     .summary-card::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
     }
@@ -233,6 +291,7 @@
     .pnl-bar {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 16px; padding: 24px; margin-bottom: 24px;
+      transition: background 0.3s, border-color 0.3s;
     }
     .pnl-bar h3 {
       font-size: 14px; font-weight: 600; margin-bottom: 16px;
@@ -241,7 +300,7 @@
     .pnl-bar h3 i { color: var(--green); }
     .pnl-row {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 0; border-bottom: 1px solid rgba(37,48,69,0.4); font-size: 14px;
+      padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px;
     }
     .pnl-row:last-child { border-bottom: none; }
     .pnl-label { color: var(--muted); }
@@ -253,6 +312,7 @@
     .table-section {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 16px; overflow: hidden; margin-bottom: 24px;
+      transition: background 0.3s, border-color 0.3s;
     }
     .table-top {
       padding: 20px 24px;
@@ -276,7 +336,7 @@
       letter-spacing: 0.8px; color: var(--muted);
       background: var(--card2); border-bottom: 1px solid var(--border); white-space: nowrap;
     }
-    tbody tr { border-bottom: 1px solid rgba(37,48,69,0.5); transition: background 0.15s; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
     tbody tr:hover { background: rgba(233,69,96,0.04); }
     tbody td {
       padding: 12px 14px; font-size: 13px;
@@ -307,11 +367,16 @@
     .toast {
       padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500;
       display: flex; align-items: center; gap: 10px;
-      animation: toastIn 0.3s ease; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+      animation: toastIn 0.3s ease; box-shadow: 0 8px 30px var(--shadow);
     }
-    .toast.success { background: #0a2e1f; border: 1px solid var(--green); color: var(--green); }
+    .toast.success { background: #0a2e1f; border: 1px solid var(--green); color: var(--green2); }
     .toast.error { background: #2e0a14; border: 1px solid var(--accent); color: var(--accent2); }
     .toast.info { background: #0a1a2e; border: 1px solid #3b82f6; color: #60a5fa; }
+    
+    [data-theme="light"] .toast.success { background: #e6fff5; color: #00855d; }
+    [data-theme="light"] .toast.error { background: #fff0f3; color: #c23152; }
+    [data-theme="light"] .toast.info { background: #eff6ff; color: #2563eb; }
+
     @keyframes toastIn { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
 
     /* ====== SETTINGS BTN ====== */
@@ -334,7 +399,7 @@
     /* ====== RESPONSIVE ====== */
     @media (max-width: 640px) {
       .header { flex-wrap: wrap; gap: 12px; }
-      .status-badge { margin-left: 0; }
+      .header-actions { margin-left: 0; width: 100%; justify-content: flex-start; }
       .header-text h1 { font-size: 20px; }
       .card-value { font-size: 17px !important; }
       .form-grid { grid-template-columns: 1fr; }
@@ -369,9 +434,15 @@
         <h1>Kalkulasi Pembelian DOGE</h1>
         <p>Track harga rata-rata, total modal, dan profit/loss</p>
       </div>
-      <div class="status-badge">
-        <span class="status-dot" id="statusDot"></span>
-        <span id="statusText">Memeriksa...</span>
+      <div class="header-actions">
+        <div class="status-badge">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Memeriksa...</span>
+        </div>
+        <!-- TOMBOL TEMA TERANG/GELAP -->
+        <button class="theme-toggle" id="themeToggle" aria-label="Ganti Tema Terang/Gelap">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
       </div>
     </header>
 
@@ -507,15 +578,46 @@
   <script>
     // ============================================================
     // KONFIGURASI
-    // GANTI URL INI dengan URL deploy Google Apps Script Anda
     // ============================================================
-    const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbz_t6wQ79ggGMebc1VgkyhmoQoVVBmKmZdfR9R_oEIHy50JFhEoYxHgQ5putEssGe_N/exec';
-
+    const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbxDwX_DQZWgFMUq6jrrkPQnT24-xvbu1xbQPa66xHpwIilcpZHeL4rcqe9iyQERskwz/exec';
     let API_URL = localStorage.getItem('gs_api_url') || DEFAULT_API_URL;
     let transactions = [];
-
-    // DOM helper
     const $ = id => document.getElementById(id);
+
+    // ============================================================
+    // SISTEM TEMA TERANG/GELAP
+    // ============================================================
+    const themeToggle = $('themeToggle');
+    const themeIcon = $('themeIcon');
+    const htmlEl = document.documentElement;
+    
+    // Cek preferensi tersimpan atau preferensi sistem
+    function getPreferredTheme() {
+      const saved = localStorage.getItem('theme');
+      if (saved) return saved;
+      return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+
+    function applyTheme(theme) {
+      if (theme === 'light') {
+        htmlEl.setAttribute('data-theme', 'light');
+        themeIcon.className = 'fas fa-sun';
+      } else {
+        htmlEl.removeAttribute('data-theme');
+        themeIcon.className = 'fas fa-moon';
+      }
+      localStorage.setItem('theme', theme);
+    }
+
+    // Inisialisasi tema
+    applyTheme(getPreferredTheme());
+
+    // Toggle saat tombol diklik
+    themeToggle.addEventListener('click', () => {
+      const current = htmlEl.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      const next = current === 'light' ? 'dark' : 'light';
+      applyTheme(next);
+    });
 
     // ============================================================
     // UTILITAS FORMAT
@@ -547,7 +649,6 @@
     // ============================================================
     // KONEKSI KE GOOGLE SHEET
     // ============================================================
-
     async function checkConn() {
       const dot = $('statusDot');
       const txt = $('statusText');
@@ -577,9 +678,7 @@
           transactions = j.data || [];
           render(); calc(); return;
         }
-      } catch (e) {
-        console.warn('Fetch gagal, pakai lokal:', e);
-      }
+      } catch (e) { console.warn('Fetch gagal, pakai lokal:', e); }
       transactions = JSON.parse(localStorage.getItem('doge_tx') || '[]');
       render(); calc();
     }
@@ -653,10 +752,7 @@
     // ============================================================
     function calc() {
       let tKoin = 0, tModal = 0;
-      transactions.forEach(t => {
-        tKoin += Number(t.jumlah) || 0;
-        tModal += Number(t.total) || 0;
-      });
+      transactions.forEach(t => { tKoin += Number(t.jumlah) || 0; tModal += Number(t.total) || 0; });
 
       const avg = tKoin > 0 ? tModal / tKoin : 0;
       const cur = parseFloat($('curPrice').value) || 0;
@@ -668,14 +764,12 @@
       $('sModal').textContent = fRp(tModal);
       $('sAvg').textContent = fRp(avg);
 
-      const pnlEl = $('sPnl');
-      const pctEl = $('sPnlPct');
+      const pnlEl = $('sPnl'); const pctEl = $('sPnlPct');
       pnlEl.textContent = fRp(pnl);
       pnlEl.className = 'card-value ' + (pnl >= 0 ? 't-g' : 't-r');
       pctEl.textContent = (pnl >= 0 ? '+' : '') + pnlPct.toFixed(2) + '%';
       pctEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--accent)';
 
-      // Detail PNL
       if (cur > 0 && tKoin > 0) {
         $('pnlBar').style.display = 'block';
         $('pnCur').textContent = fRp(curVal);
@@ -696,8 +790,6 @@
     // ============================================================
     // EVENT HANDLERS
     // ============================================================
-
-    // Tambah transaksi
     $('btnAdd').addEventListener('click', async () => {
       const coin = $('inCoin').value;
       const tanggal = $('inDate').value;
@@ -709,29 +801,23 @@
       if (!total || total <= 0) { toast('Total belanja harus lebih dari 0', 'error'); $('inTotal').focus(); return; }
 
       const btn = $('btnAdd');
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+      btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
 
       const ok = await addTx({ coin, tanggal, harga, total });
       if (ok) { $('inDate').value = new Date().toISOString().slice(0, 10); $('inPrice').value = ''; $('inTotal').value = ''; }
 
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-plus"></i> Tambah';
+      btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Tambah';
     });
 
-    // Hapus transaksi
     function handleDel(id) {
       if (!id) return;
-      // Efek visual sebelum hapus
       const btn = event.target.closest('.btn-del');
       if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true; }
       delTx(id);
     }
 
-    // Harga saat ini berubah
     $('curPrice').addEventListener('input', calc);
 
-    // Settings
     $('settingsBtn').addEventListener('click', () => {
       const bar = $('configBar');
       bar.classList.toggle('show');
@@ -740,8 +826,7 @@
     $('cfgSave').addEventListener('click', () => {
       const url = $('apiUrlInput').value.trim();
       if (url) {
-        API_URL = url;
-        localStorage.setItem('gs_api_url', API_URL);
+        API_URL = url; localStorage.setItem('gs_api_url', API_URL);
         $('configBar').classList.remove('show');
         toast('API URL disimpan. Menguji koneksi...', 'info');
         checkConn().then(ok => { if (ok) fetchData(); });
@@ -749,7 +834,6 @@
     });
     $('cfgCancel').addEventListener('click', () => { $('configBar').classList.remove('show'); });
 
-    // Default tanggal hari ini
     $('inDate').value = new Date().toISOString().slice(0, 10);
 
     // ============================================================
@@ -759,13 +843,10 @@
       const c = $('particles');
       const colors = ['rgba(233,69,96,0.3)', 'rgba(240,185,11,0.25)', 'rgba(0,214,143,0.2)'];
       for (let i = 0; i < 18; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle';
+        const p = document.createElement('div'); p.className = 'particle';
         const sz = 2 + Math.random() * 4;
-        p.style.width = sz + 'px';
-        p.style.height = sz + 'px';
-        p.style.left = Math.random() * 100 + '%';
-        p.style.bottom = '-10px';
+        p.style.width = sz + 'px'; p.style.height = sz + 'px';
+        p.style.left = Math.random() * 100 + '%'; p.style.bottom = '-10px';
         p.style.background = colors[Math.floor(Math.random() * colors.length)];
         p.style.animationDuration = (10 + Math.random() * 18) + 's';
         p.style.animationDelay = Math.random() * 12 + 's';
@@ -781,7 +862,6 @@
       await checkConn();
       await fetchData();
     }
-
     init();
   </script>
 </body>
